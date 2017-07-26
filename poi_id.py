@@ -39,7 +39,7 @@ print 'Number of non-POI:', len(df[df['poi']==False])
 print 'Number of features available', df.shape[1]
 
 # Test for columns if there are too many NaN values, see pdf file on insider pay to check different columns
-column_name = 'loan_advances'
+column_name = 'director_fees'
 zero_val = df[df[column_name]=='NaN']
 print 'Number of NaN values in %s column: %d'%(column_name, len(zero_val))
 
@@ -51,9 +51,9 @@ matplotlib.pyplot.show()
 
 # Remove outliers and employees with no data
 print 'Removing outliers and fields with NaN values'
-data_dict.pop('TOTAL', 0)
-data_dict.pop('THE TRAVEL AGENCY IN THE PARK', 0)
-
+data_dict.pop('TOTAL', 0)     # outlier
+data_dict.pop('THE TRAVEL AGENCY IN THE PARK', 0)    # not an employee
+data_dict.pop('LOCKHART EUGENE E', 0)     # has only NaN values
 # remove rows with too many NaN values
 df.drop('loan_advances', axis=1, inplace=True)
 
@@ -87,8 +87,8 @@ poi_label = ['poi']
 
 # removed loan_advances and email_address from the initial features tested
 features_list = ['poi', 'salary', 'deferral_payments', 'total_payments', 'bonus',
-                 'deferred_income', 'total_stock_value', 'expenses', 'exercised_stock_options', 'other',
-                 'long_term_incentive', 'restricted_stock', 'from_poi_to_this_person',
+                 'deferred_income', 'total_stock_value', 'expenses', 'exercised_stock_options',
+                 'restricted_stock', 'from_poi_to_this_person',
                  'from_this_person_to_poi', 'shared_receipt_with_poi']
 
 # Generate labels and features from cleaned data my_dataset
@@ -107,28 +107,30 @@ rfc = RandomForestClassifier()
 abc = AdaBoostClassifier()
 
 # prepare pipeline
-pipe = Pipeline([('scaling', scaler,), ('pca', pca), ('skb', skb), ('Naive Bayes', nb)])
+pipe = Pipeline([('scaling', scaler,), ('pca', pca), ('skb',skb), ('Naive Bayes', nb)])
 #pipe = Pipeline([('scaling', scaler),('pca', pca),('skb',skb), ('dt', dt)])
-# pipe = Pipeline([('scaling', scaler),('pca', pca), ('skb',skb), ('svc', svc)])
-# pipe = Pipeline([('scaling', scaler,),('pca', pca), ('skb',skb), ('knc', knc)])
-# pipe = Pipeline([('scaling', scaler,),('pca', pca),('skb',skb), ('rfc', rfc)])
+#pipe = Pipeline([('scaling', scaler),('pca', pca), ('skb',skb), ('svc', svc)])
+#pipe = Pipeline([('scaling', scaler,),('pca', pca), ('skb',skb), ('knc', knc)])
+#pipe = Pipeline([('scaling', scaler,),('pca', pca),('skb',skb), ('rfc', rfc)])
 # pipe = Pipeline([('pca', pca),('skb',skb), ('abc', abc)])
 
 # define param_grid for Grid Search for different algorithms
 
-param = {'pca__n_components': range(7, 13), 'pca__whiten': [True, False], 'skb__k': [2, 3, 4, 5, 6]}
-
+param = {'pca__n_components': range(7,13), 'pca__whiten': [True, False], 'skb__k': [2,3,4,5,6]}
 '''
+param = {'pca__n_components':range(6,10), 'pca__whiten': [True, False],'skb__k': [2,3,4,5],
+            'svc__C': [1, 5, 10, 100, 1000], 'svc__kernel': ['rbf', 'linear','sigmoid','poly']}
+
 param = {'pca__n_components': range(7,13), 'pca__whiten': [True, False], 'skb__k': [2,3,4,5,6],
            'dt__min_samples_split': [2, 3, 4, 5], 'dt__criterion': ['gini', 'entropy'],
            'dt__max_depth': [None, 1, 2, 3, 5, 10], 'dt__min_samples_leaf':  [1, 2, 3, 4, 5, 6, 7, 8]}
-param = {'pca__n_components':range(6,10), 'pca__whiten': [True, False],'skb__k': [2,3,4,5],
-            'svc__C': [1, 5, 10, 100, 1000], 'svc__kernel': ['rbf', 'linear','sigmoid','poly']}
+
 param = {'pca__n_components':range(6,10), 'pca__whiten': [True, False], 'skb__k': [2,3,4,5],
            'knc__n_neighbors': [2,3,4,5,6], 'knc__algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute']}
+
 param = {'pca__n_components':range(6,10), 'pca__whiten': [True, False], 'skb__k': [2,3,4,5],
-         'rfc__n_estimators': [10,15,20,25], 'rfc__criterion': ['gini', 'entropy'], 'rfc__min_samples_split': [2,3,4,5],
-         'rfc__min_samples_leaf': [1, 2, 3, 4, 5, 6, 7, 8]}
+         'rfc__n_estimators': [10,15,20,25], 'rfc__criterion': ['gini', 'entropy']}
+
 param = {'pca__n_components':range(6,10), 'pca__whiten': [True, False], 'skb__k': [2,3,4,5],
          'abc__base_estimator': [None], 'abc__n_estimators': [50], 'abc__learning_rate': [1.0,2.0,3.0,4.0,5.0], 
          'abc__algorithm': ['SAMME.R','SAMME'], 'abc__random_state': [None]}
